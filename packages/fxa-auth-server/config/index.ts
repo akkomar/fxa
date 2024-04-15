@@ -1974,6 +1974,12 @@ const convictConf = convict({
       env: 'AUTH_GLEAN_LOGGER_APP_NAME',
       format: String,
     },
+    eventsPingEnabled: {
+      default: false,
+      doc: 'Enable sending events ping',
+      env: 'AUTH_GLEAN_EVENTS_PING_ENABLED',
+      format: Boolean,
+    },
   },
 
   contentful: {

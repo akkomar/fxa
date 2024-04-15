@@ -47,6 +47,10 @@ let gleanServerEventLogger: ReturnType<typeof createEventsServerEventLogger>;
 const isEnabled = async (request: MetricsRequest) =>
   appConfig.gleanMetrics.enabled && (await request.app.isMetricsEnabled);
 
+const isEventsPingEnabled = async (request: MetricsRequest) =>
+  appConfig.gleanMetrics.eventsPingEnabled &&
+  (await request.app.isMetricsEnabled);
+
 const findUid = (request: MetricsRequest, metricsData?: MetricsData): string =>
   metricsData?.uid ||
   request.auth?.credentials?.uid ||
@@ -104,6 +108,7 @@ const createEventFn =
       if (!enabled) {
         return;
       }
+      const eventsPingEnabled = await isEventsPingEnabled(request);
 
       const metricsContext = await request.app.metricsContext;
 
@@ -137,87 +142,89 @@ const createEventFn =
         commonMetrics.account_user_id_sha256 = sha256HashUid(uid);
       }
 
-      // new style Glean events with event metric type
-      switch (eventName) {
-        case 'reg_acc_created':
-          gleanServerEventLogger.recordRegAccCreated(commonMetrics);
-          break;
-        case 'reg_acc_verified':
-          gleanServerEventLogger.recordRegAccVerified(commonMetrics);
-          break;
-        case 'reg_complete':
-          gleanServerEventLogger.recordRegComplete(commonMetrics);
-          break;
-        case 'reg_email_sent':
-          gleanServerEventLogger.recordRegEmailSent(commonMetrics);
-          break;
-        case 'reg_submit_error':
-          gleanServerEventLogger.recordRegSubmitError({
-            ...commonMetrics,
-            reason: eventReason,
-          });
-          break;
-        case 'login_success':
-          gleanServerEventLogger.recordLoginSuccess(commonMetrics);
-          break;
-        case 'login_submit_backend_error':
-          gleanServerEventLogger.recordLoginSubmitBackendError({
-            ...commonMetrics,
-            reason: eventReason,
-          });
-          break;
-        case 'login_totp_code_success':
-          gleanServerEventLogger.recordLoginTotpCodeSuccess(commonMetrics);
-          break;
-        case 'login_totp_code_failure':
-          gleanServerEventLogger.recordLoginTotpCodeFailure(commonMetrics);
-          break;
-        case 'login_backup_code_success':
-          gleanServerEventLogger.recordLoginBackupCodeSuccess(commonMetrics);
-          break;
-        case 'login_email_confirmation_sent':
-          gleanServerEventLogger.recordLoginEmailConfirmationSent(
-            commonMetrics
-          );
-          break;
-        case 'login_email_confirmation_success':
-          gleanServerEventLogger.recordLoginEmailConfirmationSuccess(
-            commonMetrics
-          );
-          break;
-        case 'login_complete':
-          gleanServerEventLogger.recordLoginComplete(commonMetrics);
-          break;
-        case 'password_reset_email_sent':
-          gleanServerEventLogger.recordPasswordResetEmailSent(commonMetrics);
-          break;
-        case 'password_reset_create_new_success':
-          gleanServerEventLogger.recordPasswordResetCreateNewSuccess(
-            commonMetrics
-          );
-          break;
-        case 'account_password_reset':
-          gleanServerEventLogger.recordAccountPasswordReset(commonMetrics);
-          break;
-        case 'password_reset_recovery_key_success':
-          gleanServerEventLogger.recordPasswordResetRecoveryKeySuccess(
-            commonMetrics
-          );
-          break;
-        case 'password_reset_recovery_key_create_success':
-          gleanServerEventLogger.recordPasswordResetRecoveryKeyCreateSuccess(
-            commonMetrics
-          );
-          break;
-        case 'access_token_created':
-          gleanServerEventLogger.recordAccessTokenCreated({
-            ...commonMetrics,
-            reason: eventReason,
-          });
-          break;
-        case 'access_token_checked':
-          gleanServerEventLogger.recordAccessTokenChecked(commonMetrics);
-          break;
+      if (eventsPingEnabled) {
+        // new style Glean events with event metric type
+        switch (eventName) {
+          case 'reg_acc_created':
+            gleanServerEventLogger.recordRegAccCreated(commonMetrics);
+            break;
+          case 'reg_acc_verified':
+            gleanServerEventLogger.recordRegAccVerified(commonMetrics);
+            break;
+          case 'reg_complete':
+            gleanServerEventLogger.recordRegComplete(commonMetrics);
+            break;
+          case 'reg_email_sent':
+            gleanServerEventLogger.recordRegEmailSent(commonMetrics);
+            break;
+          case 'reg_submit_error':
+            gleanServerEventLogger.recordRegSubmitError({
+              ...commonMetrics,
+              reason: eventReason,
+            });
+            break;
+          case 'login_success':
+            gleanServerEventLogger.recordLoginSuccess(commonMetrics);
+            break;
+          case 'login_submit_backend_error':
+            gleanServerEventLogger.recordLoginSubmitBackendError({
+              ...commonMetrics,
+              reason: eventReason,
+            });
+            break;
+          case 'login_totp_code_success':
+            gleanServerEventLogger.recordLoginTotpCodeSuccess(commonMetrics);
+            break;
+          case 'login_totp_code_failure':
+            gleanServerEventLogger.recordLoginTotpCodeFailure(commonMetrics);
+            break;
+          case 'login_backup_code_success':
+            gleanServerEventLogger.recordLoginBackupCodeSuccess(commonMetrics);
+            break;
+          case 'login_email_confirmation_sent':
+            gleanServerEventLogger.recordLoginEmailConfirmationSent(
+              commonMetrics
+            );
+            break;
+          case 'login_email_confirmation_success':
+            gleanServerEventLogger.recordLoginEmailConfirmationSuccess(
+              commonMetrics
+            );
+            break;
+          case 'login_complete':
+            gleanServerEventLogger.recordLoginComplete(commonMetrics);
+            break;
+          case 'password_reset_email_sent':
+            gleanServerEventLogger.recordPasswordResetEmailSent(commonMetrics);
+            break;
+          case 'password_reset_create_new_success':
+            gleanServerEventLogger.recordPasswordResetCreateNewSuccess(
+              commonMetrics
+            );
+            break;
+          case 'account_password_reset':
+            gleanServerEventLogger.recordAccountPasswordReset(commonMetrics);
+            break;
+          case 'password_reset_recovery_key_success':
+            gleanServerEventLogger.recordPasswordResetRecoveryKeySuccess(
+              commonMetrics
+            );
+            break;
+          case 'password_reset_recovery_key_create_success':
+            gleanServerEventLogger.recordPasswordResetRecoveryKeyCreateSuccess(
+              commonMetrics
+            );
+            break;
+          case 'access_token_created':
+            gleanServerEventLogger.recordAccessTokenCreated({
+              ...commonMetrics,
+              reason: eventReason,
+            });
+            break;
+          case 'access_token_checked':
+            gleanServerEventLogger.recordAccessTokenChecked(commonMetrics);
+            break;
+        }
       }
 
       await gleanEventLogger.record({
